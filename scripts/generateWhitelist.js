@@ -1,3 +1,4 @@
+require("dotenv").config();
 const fs = require("fs");
 const ethers = require("ethers");
 const {
@@ -5,7 +6,7 @@ const {
   INCORRECT_ADDRESS,
 } = require("../data/constants.json");
 
-const NUMBER_OF_ADRESSES = 2046;
+const NUMBER_OF_ADRESSES = process.env.NUMBER_OF_ADRESSES_TO_GENERATE || 2046;
 
 // create the addresses array and directly add the control address to it
 let addresses = [];
