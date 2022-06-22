@@ -41,7 +41,7 @@ npm run test:gas
 
 ## Gas snapshots
 
-Below, are snapshots taken during a gas consumption benchmark. Keep in mind the gas cost snapshotted includes the cost of triggering an event, if you want to exactly know how the Merkle process cost, you have to subtract the cost of triggering the event.
+Below, are snapshots taken during a gas consumption benchmark. Keep in mind the gas cost snapshotted includes the cost of triggering an event (375 gas in that case), and the base cost (21,000 of gas). If you want to exactly know how the Merkle process cost, you have to subtract these costs.  More info [here](https://github.com/wolflo/evm-opcodes/blob/main/gas.md)
 
 **This benchmark was made with a Merkle tree that contains 10 addresses**
 
