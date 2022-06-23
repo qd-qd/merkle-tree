@@ -8,6 +8,10 @@ function geneateMerkle() {
 
   // generate the merkle tree
   const merkleOptions = { sortPairs: true };
+
+  // @DEV: Do not create unbalanced tree (!!)
+  //       Refer to the note section in the documentation
+  //       to understand why it's an issue.
   const merkleTree = new MerkleTree(
     leafsNodes,
     ethers.utils.keccak256,

@@ -63,9 +63,10 @@ Below, are snapshots taken during a gas consumption benchmark. Keep in mind the 
 
 A Merkle Tree with n leaves has O(log2 n) sized proofs. That explains the result of the benchmarks above.
 
-As is, this implementation is vulnerable to a [second pre-image attack](https://en.wikipedia.org/wiki/Merkle_tree#Second_preimage_attack). To protect against this, the solution is fairly simple. The idea is to differentiate between leaf nodes and intermediate nodes in the tree by prepending a different byte value for leaf and intermediate nodes (such as 0x00 and 0x01 as in the certificate transparency implementation). Alternatively, tree depth or node depth can be recorded as part of the data structure, meaning that an attacker can’t just supply intermediate values directly. More info [here](https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/).
+This implementation checks three depths, meaning that an attacker can’t just supply intermediate values directly. That means this implementation is protected against the [second pre-image attack](https://en.wikipedia.org/wiki/Merkle_tree#Second_preimage_attack) attack. If you want to protect against this attack without checking the three depths, one of the solutions is to differentiate between leaf nodes and intermediate nodes in the tree by prepending a different byte value for leaf and intermediate nodes (such as 0x00 and 0x01 as in the certificate transparency implementation).  More info about the attack [here](https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/)
 
-Also, as is, this implementation is vulnerable to a forgery attack for an unbalanced tree, where the last leaf node can be duplicated to create an artificial balanced tree, resulting in the same Merkle root hash. Do not accept unbalanced trees to prevent this. More info [here](https://bitcointalk.org/?topic=102395).
+
+Also, as is, this implementation is vulnerable to a forgery attack for an unbalanced tree, where the last leaf node can be duplicated to create an artificial balanced tree, resulting in the same Merkle root hash. Do not accept unbalanced trees to prevent this. One solution would be to populate the tree until it is balanced by using the hash of the address(0) or any dumb data that can't be provided (if you hash `msg.sender` value in your Solidity function, address(0) sounds a great contender as no one can control the private key of this address). One example of this attack [here](https://bitcointalk.org/?topic=102395).
 
 ## Ressources
 
