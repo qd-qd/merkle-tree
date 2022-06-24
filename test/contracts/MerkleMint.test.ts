@@ -3,12 +3,13 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import generateMerkle from "../../scripts/generateMerkle";
 import { generateRandomAddresses } from "../../utils/generateRandomAddresses";
+import { doesNotReject } from "assert";
 
 type Factory = Awaited<ReturnType<typeof ethers.getContractFactory>>;
 
 dotenv.config();
 
-describe("MerkleAirdrop", function () {
+describe("MerkleMint", function () {
   let contract: Awaited<ReturnType<Factory["deploy"]>>;
   let generateProof: (address: string) => Array<string>;
   let whitelist: Array<string>;
@@ -16,7 +17,7 @@ describe("MerkleAirdrop", function () {
 
   // Read the environnement file to know how many addresses should be generated in the whitelist
   // The function ensure the tree would be balanced by checking if `Math.log2(num) % 1 === 0`
-  before(function () {
+  before(async function () {
     const numberOfElement = process.env.NUMBER_OF_ADRESSES_TO_GENERATE;
 
     try {
@@ -43,7 +44,7 @@ describe("MerkleAirdrop", function () {
     } = generateMerkle(_whitelist);
 
     // deploy the contracts with the current root hash and number of proofs required
-    const Factory = await ethers.getContractFactory("MerkleAirdrop");
+    const Factory = await ethers.getContractFactory("MerkleMint");
     contract = await Factory.deploy(`0x${rootHash}`, proofLength);
     await contract.deployed();
 
@@ -52,30 +53,62 @@ describe("MerkleAirdrop", function () {
     whitelist = _whitelist;
   });
 
-  it("ensure all the valid addresses generate valid proofs and pass the smart-contract check", async () => {
-    for (let address of whitelist) {
+  it("ensure all the valid addresses can mint by passing the proofs", async () => {
+    let id = 0;
+    for await (let address of whitelist) {
       const proofs = generateProof(address);
 
-      await expect(contract.isIncluded(address, proofs)).to.emit(
-        contract,
-        "True"
-      );
+      await expect(contract.premint(address, id, proofs))
+        .to.emit(contract, "Transfer")
+        .withArgs(ethers.constants.AddressZero, address, id);
+
+      id++;
     }
   });
 
-  it("ensure that an incorrect address can't pass the verification even by using valid proofs from someone else", async () => {
-    const [validAddress] = whitelist;
-    const correctProofsStolen = generateProof(validAddress);
-    await expect(
-      contract.isIncluded(ethers.constants.AddressZero, correctProofsStolen)
-    ).to.emit(contract, "False");
+  it("ensure the _mint function works as expected", async () => {
+    const randomAddresses = generateRandomAddresses(32);
+    let id = 0;
+
+    for await (let address of randomAddresses) {
+      const proofs = generateProof(address);
+
+      await expect(contract.mint(address, id, proofs))
+        .to.emit(contract, "Transfer")
+        .withArgs(ethers.constants.AddressZero, address, id);
+
+      id++;
+    }
   });
 
-  it("ensure the smart-contract method revert is the number of proofs passed isn't correct", async () => {
+  it("ensure it is not possible to mind if someone pass valid proofs of someone else", async () => {
+    const [validAddress] = whitelist;
+    const correctProofsStolen = generateProof(validAddress);
+    let incorrectAddress: string;
+
+    // generate new address until it is not included in the whitelist
+    do {
+      incorrectAddress = ethers.Wallet.createRandom().address;
+    } while (whitelist.includes(incorrectAddress));
+
+    // ensure this specific case revert
+    await expect(
+      contract.premint(incorrectAddress, 0, correctProofsStolen)
+    ).to.revertedWith("NotIncluded");
+  });
+
+  it("ensure it's not possible to mint if the number of proofs passed is incorrect", async () => {
     const [validAddress] = whitelist;
     const [_, ...proofs] = generateProof(validAddress);
-    await expect(contract.isIncluded(validAddress, proofs)).to.revertedWith(
+
+    // if we pass less proofs than the required number, the tx revert
+    await expect(contract.premint(validAddress, 0, proofs)).to.revertedWith(
       "IncorrectNumberOfProof"
     );
+
+    // if we pass more proofs than the required number, the tx revert
+    await expect(
+      contract.premint(validAddress, 0, [...proofs, proofs[0], proofs[0]])
+    ).to.revertedWith("IncorrectNumberOfProof");
   });
 });

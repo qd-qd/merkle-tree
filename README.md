@@ -53,32 +53,35 @@ npm run merkle:print
 
 ## Gas snapshots
 
-Below, are snapshots taken during a gas consumption benchmark. Keep in mind the gas cost snapshotted includes the cost of triggering an event (375 gas in that case), and the base cost (21,000 of gas). If you want to exactly know how the Merkle process cost, you have to subtract these costs.  More info [here](https://github.com/wolflo/evm-opcodes/blob/main/gas.md)
+Below, are snapshots taken during a gas consumption benchmark. The `mint` method is just a wrapper of the internal `_mint` method of the ERC721 OpenZeppelin contract. The `premint` method does the Merkle Tree logic stuff before calling the internal `_mint` method of the ERC721 OpenZeppelin contract. The difference is what it cost to run Merkle Tree verification for X addresses.
 
-**This benchmark was made with a Merkle tree that contains 10 addresses**
+**Note**: Function selectors aren't the same. The simple fact of calling a function with a different selector makes its call more expensive, however, the difference in price in this benchmark is negligible.
 
-![gas consumption of the verify function when passing a Merkle tree of 10 addresses](docs/cost-merkle-10-addresses.png)
 
-**This benchmark was made with a Merkle tree that contains 200 addresses**
+**This benchmark was made with a Merkle tree that contains 64 addresses**
 
-![gas consumption of the verify function when passing a Merkle tree of 200 addresses](docs/cost-merkle-200-addresses.png)
+![gas consumption of the verify function when passing a Merkle tree of 64 addresses](docs/snapshot-merkle-64-leaves.png)
 
-**This benchmark was made with a Merkle tree that contains 2,046 addresses**
+**This benchmark was made with a Merkle tree that contains 256 addresses**
 
-![gas consumption of the verify function when passing a Merkle tree of 2,046 addresses](docs/cost-merkle-2046-addresses.png)
+![gas consumption of the verify function when passing a Merkle tree of 256 addresses](docs/snapshot-merkle-256-leaves.png)
 
-**This benchmark was made with a Merkle tree that contains 10,000 addresses**
+**This benchmark was made with a Merkle tree that contains 1,024 addresses**
 
-![gas consumption of the verify function when passing a Merkle tree of 10,000 addresses](docs/cost-merkle-10000-addresses.png)
+![gas consumption of the verify function when passing a Merkle tree of 1,024 addresses](docs/snapshot-merkle-1024-leaves.png)
+
+**This benchmark was made with a Merkle tree that contains 2,048 addresses**
+
+![gas consumption of the verify function when passing a Merkle tree of 2,048 addresses](docs/snapshot-merkle-2048-leaves.png)
+
 
 ## Notes
 
-A Merkle Tree with n leaves has O(log2 n) sized proofs. That explains the result of the benchmarks above.
+A Merkle Tree with n leaves has O(log2 n) sized proofs. That explains the result of the benchmarks above and why we can strictly check the number of proofs on-chain.
 
 This implementation checks three depths, meaning that an attacker can’t just supply intermediate values directly. That means this implementation is protected against the [second pre-image attack](https://en.wikipedia.org/wiki/Merkle_tree#Second_preimage_attack) attack. If you want to protect against this attack without checking the three depths, one of the solutions is to differentiate between leaf nodes and intermediate nodes in the tree by prepending a different byte value for leaf and intermediate nodes (such as 0x00 and 0x01 as in the certificate transparency implementation).  More info about the attack [here](https://flawed.net.nz/2018/02/21/attacking-merkle-trees-with-a-second-preimage-attack/)
 
-
-Also, as is, this implementation is vulnerable to a forgery attack for an unbalanced tree, where the last leaf node can be duplicated to create an artificial balanced tree, resulting in the same Merkle root hash. Do not accept unbalanced trees to prevent this. One solution would be to populate the tree until it is balanced by using the hash of the address(0) or any dumb data that can't be provided (if you hash `msg.sender` value in your Solidity function, address(0) sounds a great contender as no one can control the private key of this address). One example of this attack [here](https://bitcointalk.org/?topic=102395).
+This implementation makes sure to always build balance trees by adding as many leaves as needed to balanced the tree. As this implementation is intended to work in the EVM ecosystem, `address(0)` was chosen to fill empty leaf slots. That's why this implementation isn't vulnerable to a forgery attack for an unbalanced tree, where the last leaf node can be duplicated to create an artificial balanced tree, resulting in the same Merkle root hash. One example of this attack [here](https://bitcointalk.org/?topic=102395).
 
 ## Ressources
 
