@@ -3,8 +3,9 @@
   "scripts": {
     "test": "npx hardhat test",
     "test:gas": "REPORT_GAS=1 npm run test",
-    "whitelist:generate": "node scripts/generateWhitelist.js",
-    "lint": "solhint 'contracts/**/*.sol'"
+    "lint": "solhint 'contracts/**/*.sol'",
+    "merkle": "npx hardhat merkle",
+    "merkle:print": "PRINT_MERKLE=1 npx hardhat merkle"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",

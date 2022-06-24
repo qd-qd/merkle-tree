@@ -11,19 +11,11 @@ This repository is an experimentation that shows how Merkle Trees work, and how 
 
 ## Installation
 
-First, install all the dependencies needed
+All you need to do is install the dependencies needed
 
 ```shell
 npm i
 ```
-
-Then, generate a fake whitelist by running this command
-
-```shell
-npm run whitelist:generate
-```
-
-By default, the whitelist will contain 2046 addresses. If you want to customize the number of addresses that should be generated, create a `.env` file at the root of the project and set the desired value to the variable called `NUMBER_OF_ADRESSES_TO_GENERATE`
 
 ## Test
 
@@ -38,6 +30,26 @@ You can generate a gas report by running this dedicated command
 ```shell
 npm run test:gas
 ```
+
+If you want, you can customize how many addresses would be in the whitelist generated for each test by updating the environment variable called `NUMBER_OF_ADRESSES_TO_GENERATE`. 
+
+**Note**: The tests will ensure the value passed will generate a balanced Merkle tree. If it's not the case, the default value (32) would be used.
+
+## Utils
+
+You can generate a random Merkle tree by running this command. 
+
+```shell
+npm run merkle
+```
+
+Want to print the Merkle created by the command above? You can use this command
+
+```shell
+npm run merkle:print
+```
+
+**Note**: The environment variable `NUMBER_OF_ADRESSES_TO_GENERATE` works for the command listed above.
 
 ## Gas snapshots
 

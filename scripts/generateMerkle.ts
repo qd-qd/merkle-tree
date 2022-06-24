@@ -1,22 +1,40 @@
 import { MerkleTree } from "merkletreejs";
 import { ethers } from "ethers";
-import { default as whitelist } from "../data/whitelist.json";
+import * as dotenv from "dotenv";
+import isNPowerOfTwo from "../utils/isNPowerOfTwo";
+import makeListLengthPowerOfTwo from "../utils/makeListLengthPowerOfTwo";
 
-function geneateMerkle() {
-  // hash addresses to generate leaf nodes
-  const leafsNodes = whitelist.map(ethers.utils.keccak256);
+// load .env
+dotenv.config();
+
+function geneateMerkle(addresses: Array<string>) {
+  if (addresses.length === 0) throw new Error("no data to merkle");
+
+  // clone the list of addresses because we may mutate it later
+  let data = [...addresses];
+
+  // check if we need to add some placeholder data to make the tree balanced
+  // if the length of the data isn't a power of two, we'll have to push data to the list
+  // to avoid construct an unbalanced tree
+  const isPowerOfTwo = isNPowerOfTwo(addresses.length);
+
+  if (!isPowerOfTwo) {
+    /* DEV: we decide to fill the data with address(0) because no one
+     ** own this address on Ethereum. This is very convenient for onchain
+     ** purposes. Fill free to use whatever you want based on your needs
+     */
+    data = makeListLengthPowerOfTwo(data, ethers.constants.AddressZero);
+  }
+
+  // hash data to generate leaf nodes
+  const leafsNodes = data.map(ethers.utils.keccak256);
 
   // generate the merkle tree
-  const merkleOptions = { sortPairs: true };
+  const merkleTree = new MerkleTree(leafsNodes, ethers.utils.keccak256, {
+    sortPairs: true,
+  });
 
-  // @DEV: Do not create unbalanced tree (!!)
-  //       Refer to the note section in the documentation
-  //       to understand why it's an issue.
-  const merkleTree = new MerkleTree(
-    leafsNodes,
-    ethers.utils.keccak256,
-    merkleOptions
-  );
+  if (process.env.PRINT_MERKLE) console.log(merkleTree.toString());
 
   // get the root hash of the merkleTree
   const rootHash = merkleTree.getRoot().toString("hex");
