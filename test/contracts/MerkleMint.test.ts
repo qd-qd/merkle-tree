@@ -3,13 +3,16 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import generateMerkle from "../../scripts/generateMerkle";
 import { generateRandomAddresses } from "../../utils/generateRandomAddresses";
-import { doesNotReject } from "assert";
 
 type Factory = Awaited<ReturnType<typeof ethers.getContractFactory>>;
 
 dotenv.config();
 
 describe("MerkleMint", function () {
+  // Increate the timeout of the tests to 80,000ms
+  // It's required to run the test with 2,048 leaves
+  this.timeout(80_000);
+
   let contract: Awaited<ReturnType<Factory["deploy"]>>;
   let generateProof: (address: string) => Array<string>;
   let whitelist: Array<string>;
