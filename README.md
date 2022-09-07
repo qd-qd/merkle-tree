@@ -55,7 +55,7 @@ npm run merkle:print
 
 Below, are snapshots taken during a gas consumption benchmark. The `mint` method is just a wrapper of the internal `_mint` method of the ERC721 OpenZeppelin contract. The `premint` method does the Merkle Tree logic stuff before calling the internal `_mint` method of the ERC721 OpenZeppelin contract. The difference is what it cost to run Merkle Tree verification for X addresses.
 
-**Note**: Function selectors aren't the same. The simple fact of calling a function with a different selector makes its call more expensive, however, the difference in price in this benchmark is negligible.
+**Note**: Function selectors aren't the same. The simple fact of calling a function with a different selector makes the calling cost different, however, the difference in price in this benchmark is negligible. Also, keep in mind the optimizer wasn't enabled during the benchmark.
 
 
 **This benchmark was made with a Merkle tree that contains 64 addresses**
