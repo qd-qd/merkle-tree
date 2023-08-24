@@ -1,5 +1,7 @@
 # Merkle experimentation for airdrop
 
+[![Twitter Follow](https://img.shields.io/twitter/follow/qdqd___?style=social)](https://twitter.com/qdqd___)
+
 ## Introduction
 
 This repository is an experimentation that shows how Merkle Trees work, and how they can be used for pre-sale mint and airdrop process'. The code in this repository is not production-ready. Please, take into consideration concerns and comments in the [note](#notes) section before using it in production.
